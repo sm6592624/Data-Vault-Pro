@@ -28,7 +28,7 @@ import { Footer } from './components/Footer';
 import { aiService } from './services/aiService';
 import type { ChatMessage, Dataset, VisualizationConfig, Column } from './types';
 import { generateId, downloadJSON } from './lib/utils';
-import './app.css';
+import './App.css';
 
 function App() {
   // Core chat and data states
