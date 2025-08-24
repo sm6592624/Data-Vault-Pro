@@ -9,7 +9,7 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterfaceProps) {
-  const [inputValue, setInputValue] = useState('');
+  const [userInput, setUserInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -22,9 +22,9 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() && !isLoading) {
-      onSendMessage(inputValue.trim());
-      setInputValue('');
+    if (userInput.trim() && !isLoading) {
+      onSendMessage(userInput.trim());
+      setUserInput(''); // clear the input after sending
     }
   };
 
@@ -129,8 +129,8 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
         <form onSubmit={handleSubmit} className="chat-input-form-browse">
           <input
             type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
             placeholder="Ask about your data..."
             className="input-browse chat-input-browse"
             disabled={isLoading}
@@ -138,7 +138,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
           <button
             type="submit"
             title="Send message"
-            disabled={!inputValue.trim() || isLoading}
+            disabled={!userInput.trim() || isLoading}
             className="btn-primary-browse chat-send-btn-browse"
           >
             <Send className="h-4 w-4" />

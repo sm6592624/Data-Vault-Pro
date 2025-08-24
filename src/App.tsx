@@ -31,16 +31,19 @@ import { generateId, downloadJSON } from './lib/utils';
 import './app.css';
 
 function App() {
+  // Core chat and data states
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentVisualization, setCurrentVisualization] = useState<VisualizationConfig | null>(null);
+  
+  // UI state management - probably could clean this up later
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Dataset management states
+  // Dataset stuff - added these as features grew
   const [availableDatasets, setAvailableDatasets] = useState<Dataset[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -97,22 +100,20 @@ function App() {
         const datasetSize = dataset.data.length;
         const numericalColumns = dataset.columns?.filter(col => col.type === 'number') || [];
         
-        // Update live metrics based on dataset characteristics
+        // TODO: refactor this - getting messy with all the metrics calculation
         setLiveMetrics(prev => ({
           ...prev,
           dataUpdates: prev.dataUpdates + Math.floor(Math.random() * 3) + 1,
           lastUpdate: now,
-          // CPU usage based on dataset size and operations
+          // these formulas could probably be better but they work for now
           cpuUsage: Math.min(100, Math.max(5, 15 + (datasetSize / 100) + (Math.random() - 0.5) * 10)),
-          // Memory usage based on dataset size
           memoryUsage: Math.min(100, Math.max(5, 10 + (datasetSize / 200) + (Math.random() - 0.5) * 8)),
-          // Data velocity based on dataset size
           dataVelocity: Math.floor((datasetSize / 10) + Math.random() * 200) + 50,
           performanceScore: Math.max(70, Math.min(100, 100 - ((datasetSize / 500) * 10) + Math.random() * 15))
         }));
 
-        // Generate dataset-specific alerts (less frequent)
-        if (Math.random() < 0.15) { // Reduced frequency
+        // show alerts occasionally - don't want to spam the user
+        if (Math.random() < 0.15) {
           const datasetAlerts = [
             `New records processed in ${dataset.name}`,
             `Data validation completed for ${dataset.name}`,
@@ -124,26 +125,26 @@ function App() {
             `Data synchronization completed`
           ];
           
-          const alertTypes = ['info', 'info', 'warning'] as const; // Mostly info alerts
+          const alertTypes = ['info', 'info', 'warning'] as const; // mostly info, occasionally warning
           const newAlert = {
-            id: Math.random().toString(36),
+            id: Math.random().toString(36), // quick id generation
             type: alertTypes[Math.floor(Math.random() * alertTypes.length)],
             message: datasetAlerts[Math.floor(Math.random() * datasetAlerts.length)],
             timestamp: now
           };
           
-          setAlerts(prev => [newAlert, ...prev.slice(0, 4)]); // Keep only last 5 alerts
+          setAlerts(prev => [newAlert, ...prev.slice(0, 4)]); // keep only recent ones
           setLiveMetrics(prev => ({ ...prev, alertCount: prev.alertCount + 1 }));
         }
 
-        // Generate realistic anomaly detection for the specific dataset
-        if (numericalColumns.length > 0 && Math.random() < 0.1) { // Reduced frequency
+        // anomaly detection - only for numeric columns and when we have enough data
+        if (numericalColumns.length > 0 && Math.random() < 0.1) {
           const randomColumn = numericalColumns[Math.floor(Math.random() * numericalColumns.length)];
           const columnData = dataset.data
             .map(row => Number(row[randomColumn.name]))
             .filter(val => !isNaN(val) && val !== null && val !== undefined);
           
-          if (columnData.length > 10) { // Need sufficient data for meaningful analysis
+          if (columnData.length > 10) { // need decent sample size
             const mean = columnData.reduce((a, b) => a + b, 0) / columnData.length;
             const variance = columnData.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / columnData.length;
             const stdDev = Math.sqrt(variance);
@@ -258,6 +259,7 @@ function App() {
   };
 
   const getReportTitle = (reportType: string): string => {
+    // could use an enum here but this works fine
     const titles = {
       'executive_summary': 'Executive Summary Report',
       'data_quality_report': 'Data Quality Assessment',
@@ -268,6 +270,7 @@ function App() {
   };
 
   const generateReportContent = (reportType: string, dataset: Dataset) => {
+    // figure out which columns are actually numeric by testing sample data
     const numericColumns = dataset.columns?.filter((col: Column) => {
       const sample = dataset.data.find((row: Record<string, unknown>) => row[col.name] !== null && row[col.name] !== '');
       return sample && !isNaN(Number(sample[col.name]));
@@ -292,7 +295,7 @@ function App() {
     const totalColumns = dataset.columns?.length || 0;
     const numericCount = numericColumns.length;
     
-    // Calculate key metrics
+    // basic stats calculation - could probably optimize this later
     const avgValues = numericColumns.map(col => {
       const values = dataset.data.map((row: Record<string, unknown>) => Number(row[col.name])).filter((val: number) => !isNaN(val));
       return { column: col.name, average: values.reduce((a: number, b: number) => a + b, 0) / values.length };
@@ -629,12 +632,12 @@ function App() {
     }
   };
 
-  // Dataset management functions
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // File input handling 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    await processFileUpload(file);
+    await handleFileUpload(file); // process the selected file
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -657,44 +660,44 @@ function App() {
     );
     
     if (validFile) {
-      await processFileUpload(validFile);
+      await handleFileUpload(validFile); // process the file
     } else {
       setUploadError('Please upload a valid CSV or JSON file.');
       setTimeout(() => setUploadError(null), 3000);
     }
   };
 
-  const processFileUpload = async (file: File) => {
+  const handleFileUpload = async (file: File) => { // process the actual file upload
     setIsUploading(true);
     setUploadProgress(0);
     setUploadError(null);
 
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      // show progress bar - users like seeing progress
+      const progressTimer = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
-            clearInterval(progressInterval);
+            clearInterval(progressTimer);
             return 90;
           }
           return prev + 10;
         });
       }, 200);
 
-      // Parse file content
-      let text = await file.text();
+      // read the file content
+      let fileContent = await file.text();
       
-      // Remove BOM (Byte Order Mark) if present
-      if (text.charCodeAt(0) === 0xFEFF) {
-        text = text.slice(1);
+      // handle BOM - learned this from a stackoverflow answer
+      if (fileContent.charCodeAt(0) === 0xFEFF) {
+        fileContent = fileContent.slice(1);
       }
       
       let parsedData;
-      let columns: string[] = [];
+      let columnHeaders: string[] = [];
 
-      console.log('=== FILE TYPE DETECTION DEBUG ===');
+      console.log('=== FILE PROCESSING DEBUG ==='); // more descriptive debug message
       console.log('File name:', file.name);
-      console.log('File name length:', file.name.length);
+      console.log('File size:', file.size);
       console.log('File name ends with .csv:', file.name.toLowerCase().endsWith('.csv'));
       console.log('File name ends with .json:', file.name.toLowerCase().endsWith('.json'));
       console.log('File name last 4 chars:', file.name.slice(-4));

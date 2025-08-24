@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
 import type { AIResponse, QueryContext } from '../types';
 
-// Initialize OpenAI client (in production, use environment variables)
+// OpenAI setup - TODO: move to proper env config
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY || 'demo-key',
-  dangerouslyAllowBrowser: true // Only for demo purposes
+  dangerouslyAllowBrowser: true // not ideal but needed for demo
 });
 
 export class AIService {
@@ -19,8 +19,7 @@ export class AIService {
 
   async queryData(context: QueryContext): Promise<AIResponse> {
     try {
-      // For demo purposes, we'll use a mock response
-      // In production, this would make actual API calls to OpenAI
+      // fallback to mock if no real API key - keeps demo working
       if (!import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY === 'demo-key') {
         return this.getMockResponse(context);
       }
@@ -38,13 +37,13 @@ export class AIService {
         max_tokens: 1000,
       });
 
-      const response = completion.choices[0]?.message?.content || '';
-      return this.parseAIResponse(response);
+      const aiResponse = completion.choices[0]?.message?.content || '';
+      return this.parseAIResponse(aiResponse);
     } catch (error) {
-      console.error('AI Service Error:', error);
+      console.error('AI query failed:', error);
       return {
-        message: "I'm having trouble processing your request right now. Please try again later.",
-        insights: ["Error occurred while processing the query"]
+        message: "Sorry, I'm having trouble right now. Please try again in a moment.",
+        insights: ["Service temporarily unavailable"]
       };
     }
   }
