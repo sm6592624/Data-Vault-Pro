@@ -14,6 +14,7 @@ The AI analyzes your data and gives you both written insights and interactive ch
 
 ###  Chat with your data
 
+
 - Upload CSV files and ask questions in natural language
 - Get instant insights and explanations
 - AI remembers the conversation context
@@ -187,15 +188,20 @@ MIT License - feel free to use this for whatever you want.
 
 This project is ready for deployment on [Vercel](https://vercel.com/):
 
-1. **Push your code to GitHub.**
-2. **Go to [vercel.com](https://vercel.com/) and import your repository.**
-3. Vercel will auto-detect this as a Vite + React app.
-4. The default build output is `dist` (already configured).
-5. If you need custom config, see the included `vercel.json`.
-6. Click "Deploy" and your app will be live in seconds!
+1. **Push your code to GitHub** (already done!)
+2. **Go to [vercel.com](https://vercel.com/) and import your repository**
+3. **Framework Preset**: Vercel will auto-detect this as a Vite app
+4. **Build Command**: `npm run build` (auto-detected)
+5. **Output Directory**: `dist` (auto-detected)
+6. **Install Command**: `npm install` (auto-detected)
+7. Click "Deploy" and your app will be live!
 
-**Environment Variables:**
-- If you use OpenAI, add `VITE_OPENAI_API_KEY` in Vercel's dashboard under Project Settings > Environment Variables.
+**Environment Variables (optional):**
+
+- If you want real AI responses, add `VITE_OPENAI_API_KEY` in Vercel's Project Settings > Environment Variables
+
+**Note:** The app works perfectly without OpenAI - it uses realistic mock responses for demo purposes.
 
 **Live Demo:**
-- After deployment, Vercel will provide a public URL for your app.
+
+- After deployment, Vercel provides a public URL like `https://data-vault-pro.vercel.app`
