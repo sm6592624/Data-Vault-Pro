@@ -632,12 +632,12 @@ function App() {
     }
   };
 
-  // File input handling 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // File input handling
+  const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    await handleFileUpload(file); // process the selected file
+    await handleFileUpload(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -706,13 +706,13 @@ function App() {
       console.log('File size:', file.size);
       console.log('MIME type check - CSV:', file.type === 'text/csv' || file.type === 'application/vnd.ms-excel');
       console.log('MIME type check - JSON:', file.type === 'application/json');
-      console.log('First 100 chars of text:', text.slice(0, 100));
-      console.log('Text starts with:', text.charAt(0));
-      console.log('Text first line:', text.split('\n')[0]);
+      console.log('First 100 chars of fileContent:', fileContent.slice(0, 100));
+      console.log('Text starts with:', fileContent.charAt(0));
+      console.log('Text first line:', fileContent.split('\n')[0]);
 
       // Content-based detection as fallback
-      const looksLikeCSV = text.includes(',') && text.split('\n').length > 1 && !text.trim().startsWith('{') && !text.trim().startsWith('[');
-      const looksLikeJSON = (text.trim().startsWith('{') && text.trim().endsWith('}')) || (text.trim().startsWith('[') && text.trim().endsWith(']'));
+      const looksLikeCSV = fileContent.includes(',') && fileContent.split('\n').length > 1 && !fileContent.trim().startsWith('{') && !fileContent.trim().startsWith('[');
+      const looksLikeJSON = (fileContent.trim().startsWith('{') && fileContent.trim().endsWith('}')) || (fileContent.trim().startsWith('[') && fileContent.trim().endsWith(']'));
       
       console.log('Content analysis - looks like CSV:', looksLikeCSV);
       console.log('Content analysis - looks like JSON:', looksLikeJSON);
@@ -753,7 +753,7 @@ function App() {
         console.log('FORCING JSON due to MIME type');
       } else {
         // Default to CSV if ambiguous and contains commas
-        if (text.includes(',')) {
+        if (fileContent.includes(',')) {
           isCSV = true;
           isJSON = false;
           console.log('DEFAULTING to CSV due to comma content');
@@ -769,7 +769,7 @@ function App() {
       console.log('=== END DEBUG ===');
 
       // EMERGENCY OVERRIDE: If file contains commas and multiple lines, force CSV processing
-      if (!isCSV && text.includes(',') && text.split('\n').length > 1) {
+      if (!isCSV && fileContent.includes(',') && fileContent.split('\n').length > 1) {
         console.log('EMERGENCY OVERRIDE: File contains commas and multiple lines, forcing CSV processing');
         isCSV = true;
         isJSON = false;
@@ -780,14 +780,14 @@ function App() {
 
       if (isCSV) {
         console.log('Processing as CSV file');
-        const lines = text.split('\n').filter(line => line.trim());
+        const lines = fileContent.split('\n').filter((line: string) => line.trim());
         if (lines.length === 0) throw new Error('Empty CSV file');
         
-        columns = lines[0].split(',').map(col => col.trim().replace(/['"]/g, ''));
-        parsedData = lines.slice(1).map((line, index) => {
-          const values = line.split(',').map(val => val.trim().replace(/['"]/g, ''));
+        columnHeaders = lines[0].split(',').map((col: string) => col.trim().replace(/['"]/g, ''));
+        parsedData = lines.slice(1).map((line: string, index: number) => {
+          const values = line.split(',').map((val: string) => val.trim().replace(/['"]/g, ''));
           const row: Record<string, unknown> = {};
-          columns.forEach((col, colIndex) => {
+          columnHeaders.forEach((col: string, colIndex: number) => {
             const value = values[colIndex] || '';
             // Try to parse numbers
             const numValue = Number(value);
@@ -799,33 +799,33 @@ function App() {
       } else if (isJSON) {
         console.log('Processing as JSON file');
         try {
-          parsedData = JSON.parse(text);
+          parsedData = JSON.parse(fileContent);
           if (!Array.isArray(parsedData)) {
             throw new Error('JSON file must contain an array of objects');
           }
         } catch (jsonError) {
           console.error('JSON parsing failed, attempting CSV fallback:', jsonError);
-          console.log('Text content (first 200 chars):', text.slice(0, 200));
+          console.log('Text content (first 200 chars):', fileContent.slice(0, 200));
           
           // Fallback to CSV parsing if JSON fails
-          if (text.includes(',') && text.split('\n').length > 1) {
+          if (fileContent.includes(',') && fileContent.split('\n').length > 1) {
             console.log('Attempting CSV fallback parsing...');
-            const lines = text.split('\n').filter(line => line.trim());
+            const lines = fileContent.split('\n').filter((line: string) => line.trim());
             if (lines.length > 0) {
-              columns = lines[0].split(',').map(col => col.trim().replace(/['"]/g, ''));
-              parsedData = lines.slice(1).map((line, index) => {
-                const values = line.split(',').map(val => val.trim().replace(/['"]/g, ''));
+              columnHeaders = lines[0].split(',').map((col: string) => col.trim().replace(/['"]/g, ''));
+              parsedData = lines.slice(1).map((line: string, index: number) => {
+                const values = line.split(',').map((val: string) => val.trim().replace(/['"]/g, ''));
                 const row: Record<string, unknown> = {};
-                columns.forEach((col, colIndex) => {
+                columnHeaders.forEach((col: string, colIndex: number) => {
                   const value = values[colIndex] || '';
                   const numValue = Number(value);
                   row[col] = !isNaN(numValue) && value !== '' ? numValue : value;
                 });
                 row._id = index + 1;
                 return row;
-              }).filter(row => Object.values(row).some(val => val !== '' && val !== null));
+              }).filter((row: Record<string, unknown>) => Object.values(row).some(val => val !== '' && val !== null));
               console.log('CSV fallback successful, rows:', parsedData.length);
-              console.log('CSV fallback columns:', columns);
+              console.log('CSV fallback columns:', columnHeaders);
               // Don't process as JSON after successful CSV fallback
             } else {
               throw new Error(`Invalid JSON format: ${jsonError instanceof Error ? jsonError.message : 'Unknown error'}`);
@@ -835,10 +835,10 @@ function App() {
           }
         }
         // Only process as JSON if CSV fallback wasn't used
-        if (parsedData && parsedData.length > 0 && !columns.length) {
-          columns = Object.keys(parsedData[0]);
+        if (parsedData && parsedData.length > 0 && !columnHeaders.length) {
+          columnHeaders = Object.keys(parsedData[0]);
           // Add unique IDs if not present
-          parsedData = parsedData.map((item, index) => ({
+          parsedData = parsedData.map((item: Record<string, unknown>, index: number) => ({
             ...item,
             _id: item._id || index + 1
           }));
@@ -849,26 +849,26 @@ function App() {
         console.log('File type:', file.type);
         console.log('isCSV:', isCSV);
         console.log('isJSON:', isJSON);
-        console.log('Text preview:', text.slice(0, 50));
+        console.log('Text preview:', fileContent.slice(0, 50));
         
         // If it looks like CSV content, try to parse as CSV anyway
-        if (text.includes(',') && text.split('\n').length > 1) {
+        if (fileContent.includes(',') && fileContent.split('\n').length > 1) {
           console.log('Attempting CSV parsing based on content...');
-          const lines = text.split('\n').filter(line => line.trim());
+          const lines = fileContent.split('\n').filter((line: string) => line.trim());
           if (lines.length === 0) throw new Error('Empty file');
           
-          columns = lines[0].split(',').map(col => col.trim().replace(/['"]/g, ''));
-          parsedData = lines.slice(1).map((line, index) => {
-            const values = line.split(',').map(val => val.trim().replace(/['"]/g, ''));
+          columnHeaders = lines[0].split(',').map((col: string) => col.trim().replace(/['"]/g, ''));
+          parsedData = lines.slice(1).map((line: string, index: number) => {
+            const values = line.split(',').map((val: string) => val.trim().replace(/['"]/g, ''));
             const row: Record<string, unknown> = {};
-            columns.forEach((col, colIndex) => {
+            columnHeaders.forEach((col: string, colIndex: number) => {
               const value = values[colIndex] || '';
               const numValue = Number(value);
               row[col] = !isNaN(numValue) && value !== '' ? numValue : value;
             });
             row._id = index + 1;
             return row;
-          }).filter(row => Object.values(row).some(val => val !== '' && val !== null));
+          }).filter((row: Record<string, unknown>) => Object.values(row).some(val => val !== '' && val !== null));
         } else {
           throw new Error(`Unsupported file type: ${file.name}. Please upload a CSV or JSON file.`);
         }
@@ -881,9 +881,9 @@ function App() {
       const newDataset: Dataset = {
         id: generateId(),
         name: file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        description: `Uploaded ${file.name.endsWith('.csv') ? 'CSV' : 'JSON'} dataset with ${parsedData.length} records and ${columns.length} columns`,
+        description: `Uploaded ${file.name.endsWith('.csv') ? 'CSV' : 'JSON'} dataset with ${parsedData.length} records and ${columnHeaders.length} columns`,
         data: parsedData,
-        columns: columns.map(col => ({
+        columns: columnHeaders.map((col: string) => ({
           name: col,
           type: inferColumnType(parsedData, col)
         })),
@@ -1153,7 +1153,7 @@ function App() {
                       ref={fileInputRef}
                       type="file"
                       accept=".csv,.json"
-                      onChange={handleFileUpload}
+                      onChange={handleFileInputChange}
                       style={{ display: 'none' }}
                     />
                   </div>
