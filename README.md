@@ -180,3 +180,22 @@ MIT License - feel free to use this for whatever you want.
 **Live Demo**: [http://localhost:5173](http://localhost:5173) *(when running locally)*
 
 *Questions? Issues? Feel free to open a GitHub issue or reach out.*
+
+---
+
+## 🚀 Deploying to Vercel
+
+This project is ready for deployment on [Vercel](https://vercel.com/):
+
+1. **Push your code to GitHub.**
+2. **Go to [vercel.com](https://vercel.com/) and import your repository.**
+3. Vercel will auto-detect this as a Vite + React app.
+4. The default build output is `dist` (already configured).
+5. If you need custom config, see the included `vercel.json`.
+6. Click "Deploy" and your app will be live in seconds!
+
+**Environment Variables:**
+- If you use OpenAI, add `VITE_OPENAI_API_KEY` in Vercel's dashboard under Project Settings > Environment Variables.
+
+**Live Demo:**
+- After deployment, Vercel will provide a public URL for your app.
