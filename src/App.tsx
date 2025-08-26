@@ -25,7 +25,7 @@ import { ChatInterface } from './components/ChatInterface';
 import { DataVisualization } from './components/DataVisualization';
 import { DashboardStats } from './components/DashboardStats';
 import { Footer } from './components/Footer';
-import { aiService } from './services/aiService';
+import { aiService } from './services/dataAnalysisService';
 import type { ChatMessage, Dataset, VisualizationConfig, Column } from './types';
 import { generateId, downloadJSON } from './lib/utils';
 import './App.css';
@@ -563,17 +563,17 @@ function App() {
     setIsLoading(true);
 
     try {
-      // Get AI response
+      // Get system response
       const aiResponse = await aiService.queryData({
         dataset,
         previousMessages: messages,
         userQuery: userMessage,
       });
 
-      // Add AI response message
+      // Add system response message
       const aiMsg: ChatMessage = {
         id: generateId(),
-        role: 'assistant',
+        role: 'system',
         content: aiResponse.message,
         timestamp: new Date(),
         visualization: aiResponse.visualization,
@@ -590,7 +590,7 @@ function App() {
       
       const errorMsg: ChatMessage = {
         id: generateId(),
-        role: 'assistant',
+        role: 'system',
         content: 'I apologize, but I encountered an error while processing your request. Please try again.',
         timestamp: new Date(),
       };
@@ -3074,7 +3074,7 @@ function App() {
   // Show main app interface regardless of dataset state
   return (
     <div className="app-container">
-      {/* Browse.ai Sidebar */}
+      {/* Data Sidebar */}
       <div className={`sidebar-browse ${sidebarOpen ? 'open' : ''}`}>
         <div style={{ padding: 'var(--spacing-lg)' }}>
           {/* Logo */}
@@ -3159,7 +3159,7 @@ function App() {
 
       {/* Main Content */}
       <div className="app-content">
-        {/* Browse.ai Header */}
+        {/* Dashboard Header */}
         <header className="nav-browse" style={{ padding: 'var(--spacing-lg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>

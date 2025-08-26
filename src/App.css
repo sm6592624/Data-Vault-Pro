@@ -1,7 +1,7 @@
-/* App-specific styles - Enhanced AI Data Explorer */
+/* App-specific styles - Enhanced Data Explorer */
 
 :root {
-  /* Professional Browse.ai Variables */
+  /* Professional Dashboard Variables */
   --totl-primary-background: rgba(0,0,0,.8);
   --totl-primary-font-color: #fff;
   --totl-primate-font-descolor: #cecece;
@@ -680,7 +680,7 @@
   margin-bottom: var(--spacing-xs);
 }
 
-/* Logo styles - Browse.ai inspired */
+/* Logo styles - Modern dashboard inspired */
 .logo-container {
   display: flex;
   align-items: center;

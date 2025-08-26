@@ -1,4 +1,4 @@
-// Types for the AI-powered data explorer
+// Data structure definitions for the analytics platform
 
 export interface DataPoint {
   id: string;
@@ -35,7 +35,7 @@ export interface Column {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'system';
   content: string;
   timestamp: Date;
   visualization?: VisualizationConfig;
@@ -48,7 +48,7 @@ export interface VisualizationConfig {
   options?: Record<string, string | number | boolean>;
 }
 
-export interface AIResponse {
+export interface SystemResponse {
   message: string;
   query?: string;
   visualization?: VisualizationConfig;

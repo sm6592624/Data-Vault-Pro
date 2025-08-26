@@ -1,23 +1,23 @@
 import OpenAI from 'openai';
-import type { AIResponse, QueryContext } from '../types';
+import type { SystemResponse, QueryContext } from '../types';
 
-// OpenAI setup - TODO: move to proper env config
+// Data analysis service integration
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY || 'demo-key',
   dangerouslyAllowBrowser: true // not ideal but needed for demo
 });
 
-export class AIService {
-  private static instance: AIService;
+export class DataAnalysisService {
+  private static instance: DataAnalysisService;
 
-  static getInstance(): AIService {
-    if (!AIService.instance) {
-      AIService.instance = new AIService();
+  static getInstance(): DataAnalysisService {
+    if (!DataAnalysisService.instance) {
+      DataAnalysisService.instance = new DataAnalysisService();
     }
-    return AIService.instance;
+    return DataAnalysisService.instance;
   }
 
-  async queryData(context: QueryContext): Promise<AIResponse> {
+  async queryData(context: QueryContext): Promise<SystemResponse> {
     try {
       // fallback to mock if no real API key - keeps demo working
       if (!import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY === 'demo-key') {
@@ -38,7 +38,7 @@ export class AIService {
       });
 
       const aiResponse = completion.choices[0]?.message?.content || '';
-      return this.parseAIResponse(aiResponse);
+      return this.parseResponse(aiResponse);
     } catch (error) {
       console.error('AI query failed:', error);
       return {
@@ -49,7 +49,7 @@ export class AIService {
   }
 
   private buildSystemPrompt(dataset: QueryContext['dataset']): string {
-    return `You are an AI data analyst assistant. You help users explore and understand their data through natural language queries.
+    return `You are a data analysis assistant. You help users explore and understand their data through natural language queries.
 
 Dataset Information:
 - Name: ${dataset.name}
@@ -92,7 +92,7 @@ Available data sample:
 ${JSON.stringify(context.dataset.data.slice(0, 3), null, 2)}`;
   }
 
-  private parseAIResponse(response: string): AIResponse {
+  private parseResponse(response: string): SystemResponse {
     try {
       const parsed = JSON.parse(response);
       return {
@@ -109,7 +109,7 @@ ${JSON.stringify(context.dataset.data.slice(0, 3), null, 2)}`;
     }
   }
 
-  private getMockResponse(context: QueryContext): AIResponse {
+  private getMockResponse(context: QueryContext): SystemResponse {
     const query = context.userQuery.toLowerCase();
     
     // Simple pattern matching for demo
@@ -183,4 +183,4 @@ ${JSON.stringify(context.dataset.data.slice(0, 3), null, 2)}`;
   }
 }
 
-export const aiService = AIService.getInstance();
+export const aiService = DataAnalysisService.getInstance();

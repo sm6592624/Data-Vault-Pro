@@ -49,7 +49,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
             <Bot className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="chat-header-title-browse">AI Assistant</h3>
+            <h3 className="chat-header-title-browse">Data Assistant</h3>
             <p className="chat-header-subtitle-browse">Ask questions about your data</p>
           </div>
         </div>
@@ -83,7 +83,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`chat-message-browse ${message.role === 'user' ? 'user' : 'assistant'}`}
+                className={`chat-message-browse ${message.role === 'user' ? 'user' : 'system'}`}
               >
                 <div className="chat-message-avatar-browse">
                   {message.role === 'user' ? (
@@ -107,7 +107,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
             ))}
             
             {isLoading && (
-              <div className="chat-message-browse assistant">
+              <div className="chat-message-browse system">
                 <div className="chat-message-avatar-browse">
                   <Bot className="h-4 w-4" />
                 </div>
